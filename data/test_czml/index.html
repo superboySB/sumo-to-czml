@@ -8,13 +8,17 @@
     <!-- 设置视口 -->
     <meta name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
-    <title>CZML Visualization with Buildings</title>
+    <title>CZML Visualization</title>
+    <!-- 网站图标 -->
+    <link rel="icon" type="image/png" href="../../theme/img/favicon.png" sizes="16x16">
     <!-- 引入CesiumJS库 -->
     <script src="../../ThirdParty/Cesium/Cesium.js"></script>
     <!-- 引入Cesium样式 -->
     <link href="../../ThirdParty/Cesium/Widgets/widgets.css" rel="stylesheet">
     <!-- 引入3DCityDB-Web-Map的相关脚本 -->
     <script src="../../js/3dcitydb-web-map.js"></script>
+    <!-- 其他必要的脚本 -->
+    <!-- 根据需要添加 -->
 
     <style>
         html, body, #cesiumContainer {
@@ -53,19 +57,15 @@
     var viewer = new Cesium.Viewer('cesiumContainer', {
         timeline: true,
         animation: true,
-        baseLayerPicker: false,
-        // 添加全球地形
-        terrainProvider: Cesium.createWorldTerrain()
+        baseLayerPicker: false
     });
 
-    // 添加Cesium OSM Buildings图层（使用ionAssetId方式）
-    var osmBuildings = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
-        url: Cesium.IonResource.fromAssetId(96188)
-    }));
+    // 创建WebMap3DCityDB对象（如果需要使用3DCityDB-Web-Map的功能）
+    var webMap = new WebMap3DCityDB(viewer);
 
     // 设置初始视图（根据您的数据范围调整）
     viewer.scene.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(11.56826, 48.140172, 1000)
+        destination: Cesium.Cartesian3.fromDegrees(11.568953, 48.140915, 500) // 设置相机位置
     });
 
     // 定义一个函数来加载CZML文件
@@ -83,11 +83,18 @@
 
             // 调整视图以适应数据范围
             viewer.flyTo(dataSource);
+
+            // 设置实体的高度参考
+            dataSource.entities.values.forEach(function(entity) {
+                if (entity.model) {
+                    entity.model.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+                }
+            });
         }).otherwise(function(error){
             console.error('Error loading czml_3Dmodels_sample.czml:', error);
         });
 
-        // 加载第二个CZML文件（点数据）
+        // 加载第二个CZML文件（周围建筑）
         Cesium.CzmlDataSource.load('czml_points_sample.czml').then(function(dataSource) {
             viewer.dataSources.add(dataSource);
             // 如果需要，可以调整点的样式
@@ -95,11 +102,20 @@
                 if (entity.point) {
                     entity.point.pixelSize = 5;
                     entity.point.color = Cesium.Color.RED;
+                    entity.point.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
                 }
             });
         }).otherwise(function(error){
             console.error('Error loading czml_points_sample.czml:', error);
         });
+
+        // 添加Cesium OSM Buildings
+        var osmBuildingsTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+            url: Cesium.IonResource.fromAssetId(96188)
+        }));
+
+        // 如果需要，可以调整深度测试以确保正确渲染
+        viewer.scene.globe.depthTestAgainstTerrain = true;
     }
 </script>
 </body>
