@@ -52,12 +52,14 @@
 </div>
 <script>
     // 初始化Cesium Viewer
-    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkNGVkNjUzNy1kZTliLTRmZDgtYTg2Mi1jYTE0NjkwNDg4NTMiLCJpZCI6NjE5MDEsImlhdCI6MTYyNjQ0ODc2M30.eQkSWPaD_VAKmlq1ne02DfpLDW0hGzlYbZysW6si-04';
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMTg2MGFhOS02YTdhLTQ1NWMtYjkzMi05YjQ2ODRlZjI5YTgiLCJpZCI6MjUxNzM1LCJpYXQiOjE3MzAyODI0ODN9.prWAxx4RB8teelutQQbVqdxhgRZpZ4zjw8wzM-8k1Ug';
 
     var viewer = new Cesium.Viewer('cesiumContainer', {
         timeline: true,
         animation: true,
-        baseLayerPicker: false
+        baseLayerPicker: false,
+        // **添加以下一行，加载全球地形**
+        terrainProvider: Cesium.createWorldTerrain()
     });
 
     // 创建WebMap3DCityDB对象（如果需要使用3DCityDB-Web-Map的功能）
@@ -67,6 +69,9 @@
     viewer.scene.camera.setView({
         destination: Cesium.Cartesian3.fromDegrees(11.568953, 48.140915, 500) // 设置相机位置
     });
+
+    // **启用深度测试，确保建筑物与地形正确渲染**
+    viewer.scene.globe.depthTestAgainstTerrain = true;
 
     // 定义一个函数来加载CZML文件
     function loadCZML() {
@@ -113,9 +118,6 @@
         var osmBuildingsTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
             url: Cesium.IonResource.fromAssetId(96188)
         }));
-
-        // 如果需要，可以调整深度测试以确保正确渲染
-        viewer.scene.globe.depthTestAgainstTerrain = true;
     }
 </script>
 </body>

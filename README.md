@@ -11,7 +11,7 @@ python sumo2czml_3dmodels.py
 ```sh
 docker run -itd --rm --runtime nvidia --name 3dwebmap-container -v /mnt/md0/sumo-to-czml/data:/var/www/data -p 80:8000 tumgis/3dcitydb-web-map:latest
 ```
-自带的token为
+自带的token为(最好换成自己的)
 ```js
 Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkNGVkNjUzNy1kZTliLTRmZDgtYTg2Mi1jYTE0NjkwNDg4NTMiLCJpZCI6NjE5MDEsImlhdCI6MTYyNjQ0ODc2M30.eQkSWPaD_VAKmlq1ne02DfpLDW0hGzlYbZysW6si-04';
 ```
