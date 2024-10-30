@@ -63,7 +63,7 @@ def convert_to_czml_3Dmodel(input_file, output_file, start_date, current_time):
                     [float(row['timestep']), float(row['x']), float(row['y']), float(row['z'])])
             else:
                 vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
-                    [float(row['timestep']), float(row['x']), float(row['y']), 0])
+                    [float(row['timestep']), float(row['x']), float(row['y']), 563])
 
             # Set the orientation based on the corresponding longitude, latitude, slope (if available) and angle values in the CSV
             if 'slope' in row:
