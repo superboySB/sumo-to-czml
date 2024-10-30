@@ -91,30 +91,71 @@
 
     // 定义一个函数来加载CZML文件
     function loadCZML() {
-        // 加载第一个CZML文件（交通流）
-        Cesium.CzmlDataSource.load('czml_3Dmodels_sample.czml').then(function(dataSource) {
-            viewer.dataSources.add(dataSource);
-            // 设置时钟和时间轴
-            viewer.clock.multiplier = 1;
-            viewer.clock.currentTime = dataSource.clock.currentTime.clone();
-            viewer.clock.startTime = dataSource.clock.startTime.clone();
-            viewer.clock.stopTime = dataSource.clock.stopTime.clone();
-            viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
-            viewer.timeline.zoomTo(dataSource.clock.startTime, dataSource.clock.stopTime);
+        // 添加一个空的CzmlDataSource来保存我们的实体
+        var czmlDataSource = new Cesium.CzmlDataSource();
+        viewer.dataSources.add(czmlDataSource);
 
-            // 调整视图以适应数据范围
-            viewer.flyTo(dataSource);
+        // 定义CZML文件的路径
+        var czmlPath = './';
 
-            // 设置实体的高度参考
-            dataSource.entities.values.forEach(function(entity) {
-                if (entity.model) {
-                    entity.model.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+        // 定义要加载的CZML文件（您的CZML文件）
+        var czmlFiles = ['czml_3Dmodels_sample.czml'];
+
+        // 定义车辆实体数组
+        var vehicleEntities = [];
+
+        // 处理每个CZML文件
+        czmlFiles.forEach(function(czmlFile) {
+            czmlDataSource.process(czmlPath + czmlFile).then(function() {
+                // 获取所有实体
+                var entities = czmlDataSource.entities.values;
+
+                // 遍历实体，设置模型和轨迹
+                for (var i = 0; i < entities.length; i++) {
+                    var entity = entities[i];
+
+                    // 设置模型的高度参考
+                    if (entity.model) {
+                        entity.model.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+                    }
+
+                    // 为每个车辆设置轨迹
+                    entity.path = new Cesium.PathGraphics({
+                        resolution: 1,
+                        material: Cesium.Color.fromRandom({
+                            alpha: 1.0
+                        }),
+                        width: 2,
+                        leadTime: 0,
+                        trailTime: 60 // 根据需要调整
+                    });
+
+                    // 将实体添加到车辆数组中
+                    vehicleEntities.push(entity);
                 }
+
+                // 跟踪第一个车辆
+                if (vehicleEntities.length > 0) {
+                    viewer.trackedEntity = vehicleEntities[0];
+                }
+
+                // 设置时钟和时间轴
+                var startTime = czmlDataSource.entities.values[0].availability.start;
+                var stopTime = czmlDataSource.entities.values[0].availability.stop;
+                viewer.clock.startTime = startTime.clone();
+                viewer.clock.stopTime = stopTime.clone();
+                viewer.clock.currentTime = startTime.clone();
+                viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; // 循环播放
+                viewer.timeline.zoomTo(startTime, stopTime);
+
+                // 调整视图以适应数据范围
+                viewer.flyTo(czmlDataSource.entities);
+            }).catch(function(error) {
+                console.error('Error processing ' + czmlFile + ':', error);
             });
-        }).catch(function(error){
-            console.error('Error loading czml_3Dmodels_sample.czml:', error);
         });
 
+        // 如果需要加载其他CZML文件（如周围建筑），可以类似处理
         // 加载第二个CZML文件（周围建筑）
         Cesium.CzmlDataSource.load('czml_points_sample.czml').then(function(dataSource) {
             viewer.dataSources.add(dataSource);
