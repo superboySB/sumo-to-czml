@@ -68,7 +68,8 @@
         // 2D和Columbus视图当前不支持全球3D Tiles
         sceneModePicker: false,
         // 当前全球3D Tiles不支持影像图层
-        baseLayerPicker: false
+        baseLayerPicker: false,
+        shouldAnimate: true
     });
 
     // 创建WebMap3DCityDB对象（如果需要使用3DCityDB-Web-Map的功能）
@@ -95,9 +96,9 @@
             viewer.dataSources.add(dataSource);
             // 设置时钟和时间轴
             viewer.clock.multiplier = 1;
-            viewer.clock.currentTime = dataSource.clock.currentTime;
-            viewer.clock.startTime = dataSource.clock.startTime;
-            viewer.clock.stopTime = dataSource.clock.stopTime;
+            viewer.clock.currentTime = dataSource.clock.currentTime.clone();
+            viewer.clock.startTime = dataSource.clock.startTime.clone();
+            viewer.clock.stopTime = dataSource.clock.stopTime.clone();
             viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
             viewer.timeline.zoomTo(dataSource.clock.startTime, dataSource.clock.stopTime);
 
@@ -110,7 +111,7 @@
                     entity.model.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
                 }
             });
-        }).otherwise(function(error){
+        }).catch(function(error){
             console.error('Error loading czml_3Dmodels_sample.czml:', error);
         });
 
@@ -125,7 +126,7 @@
                     entity.point.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
                 }
             });
-        }).otherwise(function(error){
+        }).catch(function(error){
             console.error('Error loading czml_points_sample.czml:', error);
         });
     }
