@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- 使用正确的字符集 -->
+    <meta charset="utf-8">
+    <!-- 告诉IE使用最新的渲染模式 -->
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+    <!-- 设置视口 -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>CZML Visualization with Buildings</title>
+    <!-- 引入CesiumJS库 -->
+    <script src="../../ThirdParty/Cesium/Cesium.js"></script>
+    <!-- 引入Cesium样式 -->
+    <link href="../../ThirdParty/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <!-- 引入3DCityDB-Web-Map的相关脚本 -->
+    <script src="../../js/3dcitydb-web-map.js"></script>
+
+    <style>
+        html, body, #cesiumContainer {
+            top: 0px;
+            left: 0px;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        #uiMenu {
+            border-radius: 5px;
+            padding: 10px;
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            font-family: "Arial";
+            z-index: 99999;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+<div id="cesiumContainer"></div>
+<div id="uiMenu">
+    <button type="button" onclick="loadCZML()">加载CZML数据</button>
+</div>
+<script>
+    // 初始化Cesium Viewer
+    Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkNGVkNjUzNy1kZTliLTRmZDgtYTg2Mi1jYTE0NjkwNDg4NTMiLCJpZCI6NjE5MDEsImlhdCI6MTYyNjQ0ODc2M30.eQkSWPaD_VAKmlq1ne02DfpLDW0hGzlYbZysW6si-04';
+
+    var viewer = new Cesium.Viewer('cesiumContainer', {
+        timeline: true,
+        animation: true,
+        baseLayerPicker: false,
+        // 添加全球地形
+        terrainProvider: Cesium.createWorldTerrain()
+    });
+
+    // 添加Cesium OSM Buildings图层（使用ionAssetId方式）
+    var osmBuildings = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
+        url: Cesium.IonResource.fromAssetId(96188)
+    }));
+
+    // 设置初始视图（根据您的数据范围调整）
+    viewer.scene.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(11.56826, 48.140172, 1000)
+    });
+
+    // 定义一个函数来加载CZML文件
+    function loadCZML() {
+        // 加载第一个CZML文件（交通流）
+        Cesium.CzmlDataSource.load('czml_3Dmodels_sample.czml').then(function(dataSource) {
+            viewer.dataSources.add(dataSource);
+            // 设置时钟和时间轴
+            viewer.clock.multiplier = 1;
+            viewer.clock.currentTime = dataSource.clock.currentTime;
+            viewer.clock.startTime = dataSource.clock.startTime;
+            viewer.clock.stopTime = dataSource.clock.stopTime;
+            viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP;
+            viewer.timeline.zoomTo(dataSource.clock.startTime, dataSource.clock.stopTime);
+
+            // 调整视图以适应数据范围
+            viewer.flyTo(dataSource);
+        }).otherwise(function(error){
+            console.error('Error loading czml_3Dmodels_sample.czml:', error);
+        });
+
+        // 加载第二个CZML文件（点数据）
+        Cesium.CzmlDataSource.load('czml_points_sample.czml').then(function(dataSource) {
+            viewer.dataSources.add(dataSource);
+            // 如果需要，可以调整点的样式
+            dataSource.entities.values.forEach(function(entity) {
+                if (entity.point) {
+                    entity.point.pixelSize = 5;
+                    entity.point.color = Cesium.Color.RED;
+                }
+            });
+        }).otherwise(function(error){
+            console.error('Error loading czml_points_sample.czml:', error);
+        });
+    }
+</script>
+</body>
+</html>
