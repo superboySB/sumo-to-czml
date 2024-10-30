@@ -61,20 +61,32 @@
         timeline: true,
         animation: true,
         baseLayerPicker: false,
-        // **添加以下一行，加载全球地形**
-        terrainProvider: Cesium.createWorldTerrain()
+        // 由于加载的是全球3D Tiles，所以禁用地球，以避免与数据干扰
+        globe: false,
+        // 手动重新启用大气效果
+        skyAtmosphere: new Cesium.SkyAtmosphere(),
+        // 2D和Columbus视图当前不支持全球3D Tiles
+        sceneModePicker: false,
+        // 当前全球3D Tiles不支持影像图层
+        baseLayerPicker: false
     });
 
     // 创建WebMap3DCityDB对象（如果需要使用3DCityDB-Web-Map的功能）
     var webMap = new WebMap3DCityDB(viewer);
 
-    // 设置初始视图（根据您的数据范围调整）
-    viewer.scene.camera.setView({
-        destination: Cesium.Cartesian3.fromDegrees(11.568953, 48.140915, 500) // 设置相机位置
-    });
+    // 添加Google Photorealistic 3D Tiles
+    Cesium.Cesium3DTileset.fromIonAssetId(2275207)
+        .then(function(tileset) {
+            viewer.scene.primitives.add(tileset);
 
-    // **启用深度测试，确保建筑物与地形正确渲染**
-    viewer.scene.globe.depthTestAgainstTerrain = true;
+            // 设置初始视图（根据您的数据范围调整）
+            viewer.scene.camera.setView({
+                destination: Cesium.Cartesian3.fromDegrees(11.568953, 48.140915, 500) // 设置相机位置
+            });
+        })
+        .catch(function(error) {
+            console.error('Error loading Photorealistic 3D Tiles tileset.', error);
+        });
 
     // 定义一个函数来加载CZML文件
     function loadCZML() {
@@ -116,11 +128,6 @@
         }).otherwise(function(error){
             console.error('Error loading czml_points_sample.czml:', error);
         });
-
-        // 添加Cesium OSM Buildings
-        var osmBuildingsTileset = viewer.scene.primitives.add(new Cesium.Cesium3DTileset({
-            url: Cesium.IonResource.fromAssetId(96188)
-        }));
     }
 </script>
 </body>
