@@ -25,18 +25,16 @@ def convert_to_czml_3Dmodel(input_file, output_file, start_date, current_time):
         for row in reader:
             vehicle_id = row['id']
             vehicle_type = row['type']
-            if vehicle_type not in ['passenger', 'pedestrian']:
+            if vehicle_type not in ['truck', 'passenger']:
                 continue  # skip if not passenger or pedestrian
             timestep = float(row['timestep'])
             if timestep > max_timestep:
                 max_timestep = timestep
             if vehicle_id not in vehicle_positions:
                 if vehicle_type == 'passenger':
-                    # Use a random number between 1 and 16 to generate the link to the 3D model
-                    # model_link = f"./3Dmodels/{random.randint(1, 16)}.gltf"
-                    model_link = f"./3Dmodels/CesiumMilkTruck.glb"
-                elif vehicle_type == 'pedestrian':
-                    model_link = './3Dmodels/Cesium_Man.glb'
+                    model_link = "./3Dmodels/CesiumMilkTruck.glb"
+                elif vehicle_type == 'truck':
+                    model_link = './3Dmodels/CesiumDrone.glb'
                 else:
                     model_link = './3Dmodels/notavailable.glb'
 
@@ -62,8 +60,14 @@ def convert_to_czml_3Dmodel(input_file, output_file, start_date, current_time):
                 vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
                     [float(row['timestep']), float(row['x']), float(row['y']), float(row['z'])])
             else:
-                vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
-                    [float(row['timestep']), float(row['x']), float(row['y']), 564])
+                if vehicle_type == 'passenger':
+                    vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
+                        [float(row['timestep']), float(row['x']), float(row['y']), 565])
+                elif vehicle_type == 'truck':
+                    vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
+                        [float(row['timestep']), float(row['x']), float(row['y']), 600])
+                else:
+                    raise NotImplementedError
 
             # Set the orientation based on the corresponding longitude, latitude, slope (if available) and angle values in the CSV
             if 'slope' in row:

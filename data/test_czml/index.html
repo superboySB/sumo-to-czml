@@ -89,7 +89,7 @@
         var czmlPath = './';
 
         // 合并所有CZML文件
-        var czmlFiles = ['czml_3Dmodels_sample.czml', 'czml_points_sample.czml'];
+        var czmlFiles = ['czml_3Dmodels_sample.czml', ];  // 本质上应该和右边这个等价：'czml_points_sample.czml'
 
         // 处理每个CZML文件
         czmlFiles.forEach(function(czmlFile) {
@@ -115,24 +115,6 @@
                             leadTime: 0,
                             trailTime: 60 // 根据需要调整
                         });
-                    }
-
-                    // 为具有3D模型的实体设置模型属性
-                    if (entity.model) {
-                        entity.model = new Cesium.ModelGraphics({
-                            uri: entity.model.uri, // 保持原始模型路径
-                            minimumPixelSize: 64,
-                            maximumScale: 200
-                        });
-                    }
-
-                    // 为具有点的实体设置点的属性
-                    if (entity.point) {
-                        entity.point.pixelSize = 10;
-                        entity.point.color = Cesium.Color.fromRandom({
-                            alpha: 1.0
-                        });
-                        entity.point.outlineWidth = 2;
                     }
                 }
 

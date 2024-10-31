@@ -48,7 +48,7 @@ def convert_to_czml(input_file, output_file, start_date, current_time):
                     [float(row['timestep']), float(row['x']), float(row['y']), float(row['z'])])
             else:
                 vehicle_positions[vehicle_id]['position']['cartographicDegrees'].extend(
-                    [float(row['timestep']), float(row['x']), float(row['y']), 564])
+                    [float(row['timestep']), float(row['x']), float(row['y']), 600])
 
         # Update the end time of the interval to the maximum timestep value
         end_date = start_date + timedelta(seconds=max_timestep)
