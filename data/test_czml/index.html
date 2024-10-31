@@ -17,8 +17,6 @@
     <link href="../../ThirdParty/Cesium/Widgets/widgets.css" rel="stylesheet">
     <!-- 引入3DCityDB-Web-Map的相关脚本 -->
     <script src="../../js/3dcitydb-web-map.js"></script>
-    <!-- 其他必要的脚本 -->
-    <!-- 根据需要添加 -->
 
     <style>
         html, body, #cesiumContainer {
@@ -53,7 +51,7 @@
 <script>
     // 输出CesiumJS版本
     console.log('CesiumJS version:', Cesium.VERSION);
-    
+
     // 初始化Cesium Viewer
     Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJlMTg2MGFhOS02YTdhLTQ1NWMtYjkzMi05YjQ2ODRlZjI5YTgiLCJpZCI6MjUxNzM1LCJpYXQiOjE3MzAyODI0ODN9.prWAxx4RB8teelutQQbVqdxhgRZpZ4zjw8wzM-8k1Ug';
 
@@ -61,13 +59,9 @@
         timeline: true,
         animation: true,
         baseLayerPicker: false,
-        // 由于加载的是全球3D Tiles，所以禁用地球，以避免与数据干扰
         globe: false,
-        // 手动重新启用大气效果
         skyAtmosphere: new Cesium.SkyAtmosphere(),
-        // 2D和Columbus视图当前不支持全球3D Tiles
         sceneModePicker: false,
-        // 当前全球3D Tiles不支持影像图层
         baseLayerPicker: false,
         shouldAnimate: true
     });
@@ -91,21 +85,17 @@
 
     // 定义一个函数来加载CZML文件
     function loadCZML() {
-        // 添加一个空的CzmlDataSource来保存我们的实体
-        var czmlDataSource = new Cesium.CzmlDataSource();
-        viewer.dataSources.add(czmlDataSource);
-
         // 定义CZML文件的路径
         var czmlPath = './';
 
-        // 定义要加载的CZML文件（您的CZML文件）
-        var czmlFiles = ['czml_3Dmodels_sample.czml'];
-
-        // 定义车辆实体数组
-        var vehicleEntities = [];
+        // 合并所有CZML文件
+        var czmlFiles = ['czml_3Dmodels_sample.czml', 'czml_points_sample.czml'];
 
         // 处理每个CZML文件
         czmlFiles.forEach(function(czmlFile) {
+            var czmlDataSource = new Cesium.CzmlDataSource();
+            viewer.dataSources.add(czmlDataSource);
+
             czmlDataSource.process(czmlPath + czmlFile).then(function() {
                 // 获取所有实体
                 var entities = czmlDataSource.entities.values;
@@ -114,30 +104,37 @@
                 for (var i = 0; i < entities.length; i++) {
                     var entity = entities[i];
 
-                    // 设置模型的高度参考
-                    if (entity.model) {
-                        entity.model.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
+                    // 为每个实体设置轨迹
+                    if (!entity.path) {
+                        entity.path = new Cesium.PathGraphics({
+                            resolution: 1,
+                            material: Cesium.Color.fromRandom({
+                                alpha: 1.0
+                            }),
+                            width: 2,
+                            leadTime: 0,
+                            trailTime: 60 // 根据需要调整
+                        });
                     }
 
-                    // 为每个车辆设置轨迹
-                    entity.path = new Cesium.PathGraphics({
-                        resolution: 1,
-                        material: Cesium.Color.fromRandom({
+                    // 为具有3D模型的实体设置模型属性
+                    if (entity.model) {
+                        entity.model = new Cesium.ModelGraphics({
+                            uri: entity.model.uri, // 保持原始模型路径
+                            minimumPixelSize: 64,
+                            maximumScale: 200
+                        });
+                    }
+
+                    // 为具有点的实体设置点的属性
+                    if (entity.point) {
+                        entity.point.pixelSize = 10;
+                        entity.point.color = Cesium.Color.fromRandom({
                             alpha: 1.0
-                        }),
-                        width: 2,
-                        leadTime: 0,
-                        trailTime: 60 // 根据需要调整
-                    });
-
-                    // 将实体添加到车辆数组中
-                    vehicleEntities.push(entity);
+                        });
+                        entity.point.outlineWidth = 2;
+                    }
                 }
-
-                // 跟踪第一个车辆
-                // if (vehicleEntities.length > 0) {
-                //     viewer.trackedEntity = vehicleEntities[0];
-                // }
 
                 // 设置时钟和时间轴
                 var startTime = czmlDataSource.entities.values[0].availability.start;
@@ -153,22 +150,6 @@
             }).catch(function(error) {
                 console.error('Error processing ' + czmlFile + ':', error);
             });
-        });
-
-        // 如果需要加载其他CZML文件（如周围建筑），可以类似处理
-        // 加载第二个CZML文件（周围建筑）
-        Cesium.CzmlDataSource.load('czml_points_sample.czml').then(function(dataSource) {
-            viewer.dataSources.add(dataSource);
-            // 如果需要，可以调整点的样式
-            dataSource.entities.values.forEach(function(entity) {
-                if (entity.point) {
-                    entity.point.pixelSize = 5;
-                    entity.point.color = Cesium.Color.RED;
-                    entity.point.heightReference = Cesium.HeightReference.CLAMP_TO_GROUND;
-                }
-            });
-        }).catch(function(error){
-            console.error('Error loading czml_points_sample.czml:', error);
         });
     }
 </script>

@@ -1,4 +1,6 @@
 # 复现笔记
+参考如何从SUMO的[FCD数据](https://sumo.dlr.de/docs/Simulation/Output/FCDOutput.html)打印到cesium上面。
+
 ## 安装
 运行相应的SUMO数据转换脚本
 ```sh
